@@ -24,31 +24,51 @@ class AISWEB(object):
         :return: Json or False when status_code isn't 200.
         """
         try:
-            response = self.Session.get(url, params=params, headers=self.headers)
+            self.response = self.Session.get(url, params=params, headers=self.headers)
         except Exception as e:
             print(f" {e} happened on {name} with param list:\n{params}\n")
             return False
 
-        if response.status_code == 200:
-            return response.content
+        if self.response.status_code == 200:
+            return self.response.content
         else:
             print("-" * 100)
-            print(f"Response code: {response.status_code} on {name} with param list:\n{params}")
+            print(f"Response code: {self.response.status_code} on {name} with param list:\n{params}")
             print("-" * 100, "\n")
             return {}
 
-    def get_name(self):
-        return self.bs.find("span", {"title": "Nome do Aeródromo"})
+    # extract values
+    def get_ciad(self):
+        if self.response != {}:
+            return self.bs.find("strong", {"title": "Código Identificador de Aeródromos"})
+        return None
 
-    def get_city(self):
-        return ""
-
-    def get_state(self):
-        return ""
+    def get_icao(self):
+        if self.response != {}:
+            return self.bs.find("strong", {"title": "Indicador de Localidade (ICAO Code)"})
+        return None
 
     def get_status(self):
-        return ""
+        if self.response != {}:
+            return self.bs.find("span", {"title": "Nome do Aeródromo"})
+        return None
 
+    def get_name(self):
+        if self.response != {}:
+            return self.bs.find("span", {"title": "Nome do Aeródromo"})
+        return None
+
+    def get_city(self):
+        if self.response != {}:
+            return self.bs.find("span", {"title": "cidade"})
+        return None
+
+    def get_state(self):
+        if self.response != {}:
+            return self.bs.find("span", {"title": "Estado"})
+        return None
+
+    # search
     def search_by_icao(self, icao: str):
         self.url = self.base_url + icao
         self.response = self.get("icao", self.url)
