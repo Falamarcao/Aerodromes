@@ -1,12 +1,15 @@
-from requests import Session
+from requests_html import Session
 from pandas import DataFrame
+from bs4 import BeautifulSoup
 
 class AISWEB(object):
     def __init__(self):
         self.Session = Session()
-        self.results = None
         self.base_url: str = "https://www.aisweb.aer.mil.br/?i=aerodromos&codigo="
         self.url: str = ""
+        self.response = None
+        self.bs = None
+        self.results = None
         self.headers: dict = {"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                               "AppleWebKit/537.36 (KHTML, like Gecko) "
                                               "Chrome/62.0.3202.94 Safari/537.36",
@@ -27,7 +30,7 @@ class AISWEB(object):
             return False
 
         if response.status_code == 200:
-            return response.json()
+            return response.content
         else:
             print("-" * 100)
             print(f"Response code: {response.status_code} on {name} with param list:\n{params}")
@@ -35,7 +38,7 @@ class AISWEB(object):
             return {}
 
     def get_name(self):
-        pass
+        self.bs.
 
     def get_city(self):
         pass
@@ -48,7 +51,9 @@ class AISWEB(object):
 
     def search_by_icao(self, icao: str):
         self.url = self.base_url + icao
-        self.results = self.get("icao", self.url)
+        self.response = self.get("icao", self.url)
+        self.bs = BeautifulSoup(self.response)
+        del self.response
         self.results = DataFrame({"Status": self.get_status,
                                   "Aeródromo": self.get_name(),
                                   "Cidade": self.get_city(),
