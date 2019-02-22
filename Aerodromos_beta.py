@@ -38,16 +38,16 @@ class AISWEB(object):
             return {}
 
     def get_name(self):
-        self.bs.
+        return self.bs.find("span", {"title": "Nome do Aeródromo"})
 
     def get_city(self):
-        pass
+        return ""
 
     def get_state(self):
-        pass
+        return ""
 
     def get_status(self):
-        pass
+        return ""
 
     def search_by_icao(self, icao: str):
         self.url = self.base_url + icao
