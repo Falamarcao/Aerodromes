@@ -1,7 +1,9 @@
 from requests_html import HTMLSession as Session
 from multiprocessing import Pool, current_process
+from lxml.html import fromstring
 from bs4 import BeautifulSoup
 from os import listdir
+from re import sub
 import hashlib
 import time
 
@@ -62,7 +64,9 @@ class AISWeb(object):
     def get_status(self):
         if self.response.status_code == 200:
             try:
-                return self.bs.find("span", {"title": "Nome do Aeródromo"}).text
+                page = fromstring(self.response.content)
+                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()') + page.xpath('/html/body/div/div/div/div[1]/div/div/text()')
+                return s #TODO: \t \n !!!!!!!!!!!!!!!!!!!!
             except AttributeError:
                 return None
         return "O aeródromo não foi encontrado."
@@ -80,7 +84,7 @@ class AISWeb(object):
                    "Cidade": self.get_value("span", "cidade"),
                    "UF": self.get_value("span", "Estado"),
                    "Status": self.get_status}
-        self.results = self.results.append(results)
+        return results
 
     @property
     def read_icao_file(self) -> list:
@@ -99,7 +103,7 @@ class AISWeb(object):
             icao_list = self.read_icao_file
         with Pool() as p:
             print('Parallel processing has started...')
-            p.map(self.search_by_icao, icao_list)
+            self.results = p.map(self.search_by_icao, icao_list)
             p.close()
             p.join()
             print('Parallel processing has finished...')
@@ -140,5 +144,7 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
-    aisweb.to_csv()
+    #aisweb.search_by_list_of_icao()
+    print(aisweb.search_by_icao("SJSR"))
+    print(aisweb.search_by_icao("SNMS"))
+    #aisweb.to_csv()
