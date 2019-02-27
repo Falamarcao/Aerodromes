@@ -46,15 +46,15 @@ class AISWeb(object):
         if self.response.status_code == 200:
             try:
                 return self.bs.find("strong", {"title": "Indicador de Localidade (ICAO Code)"}).text
-            except(TypeError, KeyError):
+            except AttributeError:
                 return icao
         return icao
 
     def get_value(self, tag: str, title: str):
         if self.response.status_code == 200:
             try:
-                return self.bs.find(tag, {"title": }).text
-            except(TypeError, KeyError):
+                return self.bs.find(tag, {"title": title}).text
+            except AttributeError:
                 return None
         return None
 
@@ -63,7 +63,7 @@ class AISWeb(object):
         if self.response.status_code == 200:
             try:
                 return self.bs.find("span", {"title": "Nome do Aeródromo"}).text
-            except(TypeError, KeyError):
+            except AttributeError:
                 return None
         return "O aeródromo não foi encontrado."
 
@@ -107,8 +107,8 @@ class AISWeb(object):
     def to_csv(self):
         columns: str = ""
         code = hashlib.sha1()
-        code.update(str(time.time()))
-        hash_ = hash.hexdigest()[:10]
+        code.update(str(time.time()).encode('utf-8'))
+        hash_ = code.hexdigest()[:10]
 
         # extracting columns for CSV file
         n = 1
@@ -133,7 +133,7 @@ class AISWeb(object):
                     elif n == n_columns:
                         line += value
                     n += 1
-                output_file.writeline(line)
+                output_file.write(f"{line}\n")
             output_file.close()
             del n
 
