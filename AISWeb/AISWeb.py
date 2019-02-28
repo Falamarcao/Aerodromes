@@ -16,10 +16,7 @@ class AISWeb(object):
         self.response = None
         self.bs = None
         self.results: list = []
-        self.headers: dict = {"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                              "AppleWebKit/537.36 (KHTML, like Gecko) "
-                                              "Chrome/62.0.3202.94 Safari/537.36",
-                              "Accept": "text/html¬"}
+        self.headers: dict = {"User-Agent": "Chrome/62.0.3202.94 Safari/537.36"}
 
     def get(self, name: str, url: str, params: dict = None):
         """
@@ -35,7 +32,7 @@ class AISWeb(object):
             print(f" {e} happened on {name} with param list:\n{params}\n")
             return False
 
-        if response.status_code == 200 or 500:
+        if response.status_code == 200 or 404:
             return response
         else:
             print("-" * 100)
@@ -62,14 +59,14 @@ class AISWeb(object):
     @property
     def get_alert(self):
         if self.response.status_code == 200:
+            page = fromstring(self.response.content)
             try:
-                page = fromstring(self.response.content)
-                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
+                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
+                    page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
                 return s.strip()
             except (AttributeError, IndexError):
-                return ""
-        if self.response.status_code == 404:
-            return "O aeródromo não foi encontrado."
+                return page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')[1].strip()
+        return ""
 
     # search
     def search_by_icao(self, icao: str):
