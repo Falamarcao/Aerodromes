@@ -90,7 +90,7 @@ class AISWeb(object):
 
                     h5 = element.find_next('h5')
                     if h5 is not None:
-                        notam_dict.update({"titulo": h5.text[len(badge_info)+1:]})
+                        notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:]})
 
                     pre = element.find_next('pre')
                     if pre is not None:
@@ -101,11 +101,12 @@ class AISWeb(object):
                         notam_dict.update({"texto2": span.text.strip()})
 
                     href = element.find_next('a').get('href')
-                    if (href is not None) and (href != "?i=aerodromos&p=sol&id=SBSV"):
+                    if (href is not None) and (href != compile('.*?i=aerodromos&p=sol&id=.*')):
                         notam_dict.update({"anexo": href})
 
                     notam_list.append(notam_dict)
-
+            if len(notam_list) == 1:
+                return notam_list[0]
             return notam_list
         return ""
 
@@ -170,7 +171,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao(['SBSV'])
-    print(aisweb.results)
-    #aisweb.to_csv()
+    aisweb.search_by_list_of_icao()
+    aisweb.to_csv()
 
