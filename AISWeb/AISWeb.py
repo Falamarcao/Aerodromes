@@ -64,8 +64,16 @@ class AISWeb(object):
                 s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
                     page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
                 return s.strip()
-            except (AttributeError, IndexError):
-                return page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')[1].strip()
+            except IndexError:
+                element = page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')
+                if element is not None:
+                    value = ""
+                    for i in element:
+                        if element.index(i) < len(element):
+                            value += i.strip() + ' '
+                        else:
+                            value += i.strip()
+                    return value
         return ""
 
     # search
@@ -86,7 +94,7 @@ class AISWeb(object):
     @property
     def read_icao_file(self) -> list:
         icao_list: list = []
-        icao_filenames = ['AISWeb\\' + i for i in listdir('AISWeb') if i[-5:] == ".icao"]
+        icao_filenames = ['AISWeb\\ICAO\\' + i for i in listdir('AISWeb\\ICAO') if i[-5:] == ".icao"]
         if len(icao_filenames) == 0:
             print("Please insert the *.cao files into the folder and try again.")
             exit()
@@ -107,7 +115,7 @@ class AISWeb(object):
         """
         if icao_list is None:
             icao_list = self.read_icao_file
-        with Pool() as p:
+        with Pool(4) as p:
             print('Parallel processing has started...')
             self.results = p.map(self.search_by_icao, icao_list)
             p.close()
