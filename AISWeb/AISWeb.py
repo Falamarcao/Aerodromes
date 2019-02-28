@@ -126,7 +126,7 @@ class AISWeb(object):
                    "Notam": self.get_notam}
         return results
 
-    @staticmethod
+    @property
     def read_icao_file(self) -> list:
         icao_list: list = []
         icao_filenames = ['AISWeb\\ICAO\\' + i for i in listdir('AISWeb\\ICAO') if i[-5:] == ".icao"]
