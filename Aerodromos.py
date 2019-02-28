@@ -2,8 +2,8 @@ from requests_html import HTMLSession as Session
 from multiprocessing import Pool, current_process
 from lxml.html import fromstring
 from bs4 import BeautifulSoup
+from numpy import nan
 from os import listdir
-from re import sub
 import hashlib
 import time
 
@@ -57,18 +57,18 @@ class AISWeb(object):
             try:
                 return self.bs.find(tag, {"title": title}).text
             except AttributeError:
-                return None
+                return nan
         return None
 
     @property
-    def get_status(self):
+    def get_alert(self):
         if self.response.status_code == 200:
             try:
                 page = fromstring(self.response.content)
-                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()') + page.xpath('/html/body/div/div/div/div[1]/div/div/text()')
-                return s #TODO: \t \n !!!!!!!!!!!!!!!!!!!!
-            except AttributeError:
-                return None
+                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
+                return s.strip()
+            except (AttributeError, IndexError):
+                return nan
         return "O aeródromo não foi encontrado."
 
     # search
@@ -83,7 +83,7 @@ class AISWeb(object):
                    "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
                    "Cidade": self.get_value("span", "cidade"),
                    "UF": self.get_value("span", "Estado"),
-                   "Status": self.get_status}
+                   "Alerta": self.get_status}
         return results
 
     @property
@@ -144,7 +144,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    #aisweb.search_by_list_of_icao()
-    print(aisweb.search_by_icao("SJSR"))
-    print(aisweb.search_by_icao("SNMS"))
-    #aisweb.to_csv()
+    aisweb.search_by_list_of_icao()
+    aisweb.to_csv()
+
