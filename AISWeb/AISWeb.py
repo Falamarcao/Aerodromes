@@ -4,7 +4,6 @@ from lxml.html import fromstring
 from bs4 import BeautifulSoup
 from csv import DictWriter
 from os import listdir
-from numpy import nan
 import hashlib
 import time
 
@@ -20,7 +19,7 @@ class AISWeb(object):
         self.headers: dict = {"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                               "AppleWebKit/537.36 (KHTML, like Gecko) "
                                               "Chrome/62.0.3202.94 Safari/537.36",
-                              "Accept": "application/json"}
+                              "Accept": "text/html¬"}
 
     def get(self, name: str, url: str, params: dict = None):
         """
@@ -45,21 +44,20 @@ class AISWeb(object):
             return {}
 
     # extract values
-    def get_icao(self,icao=None):
+    def get_icao(self, icao=None):
         if self.response.status_code == 200:
             try:
                 return self.bs.find("strong", {"title": "Indicador de Localidade (ICAO Code)"}).text
             except AttributeError:
-                return icao
+                pass
         return icao
 
     def get_value(self, tag: str, title: str):
         if self.response.status_code == 200:
-            try:
-                return self.bs.find(tag, {"title": title}).text
-            except AttributeError:
-                return nan
-        return None
+            element = self.bs.find(tag, {"title": title})
+            if element is not None:
+                return element.text
+        return ""
 
     @property
     def get_alert(self):
@@ -69,8 +67,9 @@ class AISWeb(object):
                 s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
                 return s.strip()
             except (AttributeError, IndexError):
-                return nan
-        return "O aeródromo não foi encontrado."
+                return ""
+        if self.response.status_code == 404:
+            return "O aeródromo não foi encontrado."
 
     # search
     def search_by_icao(self, icao: str):
@@ -90,7 +89,10 @@ class AISWeb(object):
     @property
     def read_icao_file(self) -> list:
         icao_list: list = []
-        icao_filenames = [e for e in listdir() if e[-5:] == ".icao"]
+        icao_filenames = ['AISWeb\\' + i for i in listdir('AISWeb') if i[-5:] == ".icao"]
+        if len(icao_filenames) == 0:
+            print("Please insert the *.cao files into the folder and try again.")
+            exit()
         for file_name in icao_filenames:
             with open(file_name, 'r', newline='\n', encoding='utf-8') as file:
                 for line in file.read().splitlines():
@@ -99,7 +101,13 @@ class AISWeb(object):
                 file.close()
         return icao_list
 
-    def search_by_list_of_icao(self, icao_list=None):
+    def search_by_list_of_icao(self, icao_list: list = None):
+        """
+        get information from AISWeb. If a icao list is not given.
+        The function will search for *.icao files
+        :param icao_list:
+        :return:
+        """
         if icao_list is None:
             icao_list = self.read_icao_file
         with Pool() as p:
@@ -107,15 +115,15 @@ class AISWeb(object):
             self.results = p.map(self.search_by_icao, icao_list)
             p.close()
             p.join()
-            print('Parallel processing has finished...')
+            print('Parallel processing finished...')
 
     def to_csv(self):
         code = hashlib.sha1()
         code.update(str(time.time()).encode('utf-8'))
         hash_ = code.hexdigest()[:10]
-
         keys = self.results[0].keys()
-        with open(f"output_{hash_}.csv", 'wb') as output_file:
+        with open(f'AISWeb\\output_aisweb_{hash_}.csv', 'w', newline='') as output_file:
+            print(f'Recording to file: output_aisweb_{hash_}.csv')
             dict_writer = DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.results)
