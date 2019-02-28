@@ -2,8 +2,9 @@ from requests_html import HTMLSession as Session
 from multiprocessing import Pool, current_process
 from lxml.html import fromstring
 from bs4 import BeautifulSoup
-from numpy import nan
+from csv import DictWriter
 from os import listdir
+from numpy import nan
 import hashlib
 import time
 
@@ -109,37 +110,15 @@ class AISWeb(object):
             print('Parallel processing has finished...')
 
     def to_csv(self):
-        columns: str = ""
         code = hashlib.sha1()
         code.update(str(time.time()).encode('utf-8'))
         hash_ = code.hexdigest()[:10]
 
-        # extracting columns for CSV file
-        n = 1
-        n_columns = len(self.results[0].keys())
-        for key in self.results[0].keys():
-            if n < n_columns:
-                columns += f"{key},"
-            elif n == n_columns:
-                columns += key
-                break
-            n += 1
-
-
-        with open(f"output_{hash_}.csv", 'w', encoding='utf-8') as output_file:
-            output_file.write(columns)
-            for dict_ in self.results:
-                line = ""
-                n = 1
-                for value in dict_.values():
-                    if n < n_columns:
-                        line += f"{value},"
-                    elif n == n_columns:
-                        line += value
-                    n += 1
-                output_file.write(f"{line}\n")
-            output_file.close()
-            del n
+        keys = self.results[0].keys()
+        with open(f"output_{hash_}.csv", 'wb') as output_file:
+            dict_writer = DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(self.results)
 
 
 if __name__ == '__main__':
