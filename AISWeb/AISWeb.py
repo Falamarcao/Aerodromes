@@ -3,6 +3,7 @@ from multiprocessing import Pool, current_process
 from lxml.html import fromstring
 from bs4 import BeautifulSoup
 from csv import DictWriter
+from re import compile
 from os import listdir
 import hashlib
 import time
@@ -50,30 +51,62 @@ class AISWeb(object):
         return icao
 
     def get_value(self, tag: str, title: str):
-        if self.response.status_code == 200:
-            element = self.bs.find(tag, {"title": title})
-            if element is not None:
-                return element.text
+        element = self.bs.find(tag, {"title": title})
+        if element is not None:
+            return element.text
         return ""
 
     @property
     def get_alert(self):
-        if self.response.status_code == 200:
-            page = fromstring(self.response.content)
-            try:
-                s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
-                    page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
-                return s.strip()
-            except IndexError:
-                element = page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')
-                if element is not None:
-                    value = ""
-                    for i in element:
-                        if element.index(i) < len(element):
-                            value += i.strip() + ' '
-                        else:
-                            value += i.strip()
-                    return value
+        page = fromstring(self.response.content)
+        try:
+            s = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
+                page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
+            return s.strip()
+        except IndexError:
+            element = page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')
+            if element is not None:
+                value = ""
+                for i in element:
+                    if element.index(i) < len(element):
+                        value += i.strip() + ' '
+                    else:
+                        value += i.strip()
+                return value
+        return ""
+
+    @property
+    def get_notam(self):
+        elements = self.bs.find_all("div", {"class": "notam"})
+        notam_list = []
+        if elements is not None:
+
+            for element in elements:
+                notam_dict = {}
+
+                badge_info = element.find_next('span', {'class': compile('.*badge.*')})
+                if badge_info is not None:
+                    notam_dict.update({"badge_info": badge_info.text})
+
+                    h5 = element.find_next('h5')
+                    if h5 is not None:
+                        notam_dict.update({"titulo": h5.text[len(badge_info)+1:]})
+
+                    pre = element.find_next('pre')
+                    if pre is not None:
+                        notam_dict.update({"texto1": pre.text})
+
+                    span = element.find_next('span', {'class': ''})
+                    if badge_info is not None:
+                        notam_dict.update({"texto2": span.text.strip()})
+
+                    href = element.find_next('a').get('href')
+                    if href is not None:
+                        notam_dict.update({"anexo": href})
+
+                    notam_list.append(notam_dict)
+
+            return notam_list
         return ""
 
     # search
@@ -88,10 +121,11 @@ class AISWeb(object):
                    "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
                    "Cidade": self.get_value("span", "cidade"),
                    "UF": self.get_value("span", "Estado"),
-                   "Alerta": self.get_alert}
+                   "Alerta": self.get_alert,
+                   "Notam": self.get_notam}
         return results
 
-    @property
+    @staticmethod
     def read_icao_file(self) -> list:
         icao_list: list = []
         icao_filenames = ['AISWeb\\ICAO\\' + i for i in listdir('AISWeb\\ICAO') if i[-5:] == ".icao"]
@@ -136,6 +170,7 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
-    aisweb.to_csv()
+    aisweb.search_by_list_of_icao(['SBSV'])
+    #print(aisweb.results)
+    #aisweb.to_csv()
 
