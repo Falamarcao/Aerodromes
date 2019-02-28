@@ -101,7 +101,7 @@ class AISWeb(object):
                         notam_dict.update({"texto2": span.text.strip()})
 
                     href = element.find_next('a').get('href')
-                    if href is not None:
+                    if (href is not None) and (href != "?i=aerodromos&p=sol&id=SBSV"):
                         notam_dict.update({"anexo": href})
 
                     notam_list.append(notam_dict)
@@ -171,6 +171,6 @@ class AISWeb(object):
 if __name__ == '__main__':
     aisweb = AISWeb()
     aisweb.search_by_list_of_icao(['SBSV'])
-    #print(aisweb.results)
+    print(aisweb.results)
     #aisweb.to_csv()
 
