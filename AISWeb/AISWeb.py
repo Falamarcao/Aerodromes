@@ -86,22 +86,22 @@ class AISWeb(object):
 
                 badge_info = element.find_next('span', {'class': compile('.*badge.*')})
                 if badge_info is not None:
-                    notam_dict.update({"badge_info": badge_info.text})
+                    notam_dict.update({"badge_info": badge_info.text.strip()})
 
                     h5 = element.find_next('h5')
                     if h5 is not None:
-                        notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:]})
+                        notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:].strip()})
 
                     pre = element.find_next('pre')
                     if pre is not None:
-                        notam_dict.update({"texto1": pre.text})
+                        notam_dict.update({"texto1": pre.text.strip()})
 
                     span = element.find_next('span', {'class': ''})
                     if badge_info is not None:
                         notam_dict.update({"texto2": span.text.strip()})
 
                     href = element.find_next('a').get('href')
-                    if (href is not None) and (href != compile('.*?i=aerodromos&p=sol&id=.*')):
+                    if (href is not None) and ("?i=aerodromos&p=sol&id=" not in href):
                         notam_dict.update({"anexo": href})
 
                     notam_list.append(notam_dict)
