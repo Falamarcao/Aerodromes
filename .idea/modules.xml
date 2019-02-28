@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/AISWeb/AISWeb.iml" filepath="$PROJECT_DIR$/AISWeb/AISWeb.iml" />
       <module fileurl="file://$PROJECT_DIR$/Aerodromos.iml" filepath="$PROJECT_DIR$/Aerodromos.iml" />
     </modules>
   </component>

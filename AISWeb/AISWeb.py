@@ -83,7 +83,7 @@ class AISWeb(object):
                    "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
                    "Cidade": self.get_value("span", "cidade"),
                    "UF": self.get_value("span", "Estado"),
-                   "Alerta": self.get_status}
+                   "Alerta": self.get_alert}
         return results
 
     @property
