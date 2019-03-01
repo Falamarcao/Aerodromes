@@ -75,6 +75,16 @@ class AISWeb(object):
                 return value
         return ""
 
+    @staticmethod
+    def __clean(n):
+        if type(n) == list:
+            output = ""
+            for s in n:
+                output += f"{s} "
+        else:
+            output = n.strip()
+        return output.replace("-", "").replace(r"\n", "").replace("\t", "").strip()
+
     @property
     def get_notam(self):
         elements = self.bs.find_all("div", {"class": "notam"})
@@ -86,19 +96,19 @@ class AISWeb(object):
 
                 badge_info = element.find_next('span', {'class': compile('.*badge.*')})
                 if badge_info is not None:
-                    notam_dict.update({"badge_info": badge_info.text.strip()})
+                    notam_dict.update({"badge_info": badge_info.text})
 
                     h5 = element.find_next('h5')
                     if h5 is not None:
-                        notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:].strip()})
+                        notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:]})
 
                     pre = element.find_next('pre')
                     if pre is not None:
-                        notam_dict.update({"texto1": pre.text.strip()})
+                        notam_dict.update({"texto1": self.__clean(pre.text)})
 
                     span = element.find_next('span', {'class': ''})
                     if badge_info is not None:
-                        notam_dict.update({"texto2": span.text.strip()})
+                        notam_dict.update({"texto2": self.__clean(span.text)})
 
                     href = element.find_next('a').get('href')
                     if (href is not None) and ("?i=aerodromos&p=sol&id=" not in href):
@@ -151,11 +161,9 @@ class AISWeb(object):
         if icao_list is None:
             icao_list = self.read_icao_file
         with Pool(4) as p:
-            print('Parallel processing has started...')
             self.results = p.map(self.search_by_icao, icao_list)
             p.close()
             p.join()
-            print('Parallel processing finished...')
 
     def to_csv(self):
         code = hashlib.sha1()
@@ -171,6 +179,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
+    aisweb.search_by_list_of_icao(["SBSV"])
     aisweb.to_csv()
 
