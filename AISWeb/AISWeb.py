@@ -75,16 +75,6 @@ class AISWeb(object):
                 return value
         return ""
 
-    @staticmethod
-    def __clean(n):
-        if type(n) == list:
-            output = ""
-            for s in n:
-                output += f"{s} "
-        else:
-            output = n.strip()
-        return output.replace("-", "").replace(r"\n", "").replace("\t", "").strip()
-
     @property
     def get_notam(self):
         elements = self.bs.find_all("div", {"class": "notam"})
@@ -104,16 +94,15 @@ class AISWeb(object):
 
                     pre = element.find_next('pre')
                     if pre is not None:
-                        notam_dict.update({"texto1": self.__clean(pre.text)})
+                        notam_dict.update({"texto1": pre.text})
 
                     span = element.find_next('span', {'class': ''})
                     if badge_info is not None:
-                        notam_dict.update({"texto2": self.__clean(span.text)})
+                        notam_dict.update({"texto2": span.text})
 
                     href = element.find_next('a').get('href')
                     if (href is not None) and ("?i=aerodromos&p=sol&id=" not in href):
                         notam_dict.update({"anexo": href})
-
                     notam_list.append(notam_dict)
             if len(notam_list) == 1:
                 return notam_list[0]
@@ -133,7 +122,7 @@ class AISWeb(object):
                    "Cidade": self.get_value("span", "cidade"),
                    "UF": self.get_value("span", "Estado"),
                    "Alerta": self.get_alert,
-                   "Notam": self.get_notam}
+                   "NOTAM": self.get_notam}
         return results
 
     @property
@@ -171,7 +160,7 @@ class AISWeb(object):
         hash_ = code.hexdigest()[:10]
         keys = self.results[0].keys()
         with open(f'AISWeb\\output_aisweb_{hash_}.csv', 'w', newline='') as output_file:
-            print(f'Recording to file: output_aisweb_{hash_}.csv')
+            print(f'Recorded at file: output_aisweb_{hash_}.csv')
             dict_writer = DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.results)
@@ -179,6 +168,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao(["SBSV"])
+    aisweb.search_by_list_of_icao()
     aisweb.to_csv()
 
