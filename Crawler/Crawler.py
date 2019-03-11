@@ -8,8 +8,6 @@ from bs4 import BeautifulSoup
 from collections import deque
 
 
-
-
 class Crawler(object):
 
     def __init__(self):
@@ -64,7 +62,7 @@ class Crawler(object):
                             # ignore scroll links
                             continue
                         elif 'mailto:' in anchor.attrs['href']:
-                            #ignore emails
+                            # ignore emails
                             continue
                         else:
                             url = urlsplit(f"{base_url}/{anchor.attrs['href'].strip()}")
@@ -83,38 +81,38 @@ class Crawler(object):
             if response.status_code == 200:
                 email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
                 if len(email_list) > 0:
-                    return email_list
+                    return {"url": url, "email": email_list}
                 return []
 
-    # THIS IS NOT WORKING 100%..
-    # def find_phone(self, url: str):
-    #     print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
-    #     response = self.get(name='find_phone', url=url)
-    #     if response:
-    #         if response.status_code == 200:
-    #             html = sub(r'[()-]', '', response.text)
-    #             phone_list = findall(r'[0-9]{2}.[0-9]{8,9}', html)
-    #             print(phone_list)
-    #             if len(phone_list) > 0:
-    #                 tmplst = deque()
-    #                 for number in phone_list:
-    #                     if number is not '':
-    #                         try:
-    #                             tmplst.append(format_number(parse(str(number), 'BR'), PhoneNumberFormat.NATIONAL))
-    #                         except NumberParseException:
-    #                             continue
-    #                 phone_list = tmplst
-    #                 return phone_list
-    #             return []
+    # THIS IS NOT WORKING 100%.. -------------------------------------------------------------------------------------->
+    def find_phone(self, url: str):
+        print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
+        response = self.get(name='find_phone', url=url)
+        if response:
+            if response.status_code == 200:
+                html = sub(r'[()-]', '', response.text)
+                phone_list = findall(r'[0-9]{2}.[0-9]{8,9}', html)
+                print(phone_list)
+                if len(phone_list) > 0:
+                    tmplst = deque()
+                    for number in phone_list:
+                        if number is not '':
+                            try:
+                                tmplst.append(format_number(parse(str(number), 'BR'), PhoneNumberFormat.NATIONAL))
+                            except NumberParseException:
+                                continue
+                    phone_list = tmplst
+                    return phone_list
+                return []
 
-    # def find_phones_in_list(self, url: str):
-    #     crawled_url_list = self.find_urls(url)
-    #     with Pool() as p:
-    #         phone_pool = p.map(self.find_phone, crawled_url_list)
-    #         p.close()
-    #         p.join()
-    #     return phone_pool
-
+    def find_phones_in_list(self, url: str):
+        crawled_url_list = self.find_urls(url)
+        with Pool() as p:
+            phone_pool = p.map(self.find_phone, crawled_url_list)
+            p.close()
+            p.join()
+        return phone_pool
+    # ----------------------------------------------------------------------------------------------------------------/>
 
     def find_emails_in_list(self, url: str):
         crawled_url_list = self.find_urls(url)
