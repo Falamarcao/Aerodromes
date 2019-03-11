@@ -1,5 +1,5 @@
-from phonenumbers import format_number, parse, PhoneNumberFormat
-from phonenumbers.phonenumberutil import NumberParseException
+# from phonenumbers import format_number, parse, PhoneNumberFormat
+# from phonenumbers.phonenumberutil import NumberParseException
 from multiprocessing import Pool, current_process
 from requests_html import HTMLSession as Session
 from re import findall, sub, IGNORECASE
