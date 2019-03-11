@@ -82,7 +82,7 @@ class Crawler(object):
                 email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
                 if len(email_list) > 0:
                     return {"url": url, "email": email_list}
-                return []
+                return None
 
     # THIS IS NOT WORKING 100%.. -------------------------------------------------------------------------------------->
     def find_phone(self, url: str):
@@ -122,21 +122,26 @@ class Crawler(object):
             p.join()
 
         # Uniqueness
-        emails = set()
-        for email_list in email_pool:
-            if type(email_list) == list:
-                for email in email_list:
-                    if email is not None:
-                        emails.add(email)
-            else:
-                if email_list is not None:
-                    emails.add(email_list)
-        return emails
+        return_ = []
+        for dictionary in email_pool:
+            if dictionary is not None:
+                emails_return = set()
+                for email_list in dictionary['email']:
+                    if type(email_list) == list:
+                        for email in email_list:
+                            if email is not None:
+                                emails_return.add(email)
+                    else:
+                        if email_list is not None:
+                            emails_return.add(email_list)
+                return_.append({"url": dictionary['url'], "email": emails_return})
+        return return_
 
 
 if __name__ == '__main__':
     crawler = Crawler()
-    results = crawler.find_emails_in_list('https://aracati.ce.gov.br/')
+    # results = crawler.find_emails_in_list('https://www.gupy.io')
+    # results = crawler.find_emails_in_list('https://aracati.ce.gov.br/')
     # results = crawler.find_emails_in_list('http://www.pmcg.mg.gov.br/')
-    # results = crawler.find_emails('http://www.aruana.go.gov.br/')
+    results = crawler.find_emails('http://www.aruana.go.gov.br/')
     print(results)
