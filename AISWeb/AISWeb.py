@@ -30,7 +30,9 @@ class AISWeb(object):
         try:
             response = self.Session.get(url, params=params, headers=self.headers)
         except Exception as e:
+            print("-" * 100)
             print(f" {e} happened on {name} with param list:\n{params}\n")
+            print("-" * 100, "\n")
             return False
 
         if response.status_code == 200 or 404:
