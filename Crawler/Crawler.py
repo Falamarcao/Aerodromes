@@ -16,30 +16,35 @@ class Crawler(object):
 
     def get(self, name: str, url: str, params: dict = None):
         """
-        function to get json data from API
+        function to handle all HTTP GET methods from that class
         :param name: transaction name for log control
         :param url: from where are asking data
-        :param params: filters and mandatory parameters
+        :param params: filters and mandatory parameters when these exists
         :return: Json or False when status_code isn't 200.
         """
-        try:
-            response = self.Session.get(url, params=params, headers=self.headers)
-        except Exception as e:
-            print("-" * 100)
-            print(f" {e} happened on {name}, URL: {url}\n")
-            print("-" * 100, "\n")
-            return False
-
-        if response.status_code == 200:
-            return response
-        else:
-            print("-" * 100)
-            print(f"Response code: {response.status_code} on {name}, URL: {url}\n")
-            print("-" * 100, "\n")
-            return response
+        while True:
+            try:
+                response = self.Session.get(url, params=params, headers=self.headers)
+            except Exception as e:
+                print("-" * 100)
+                print(f" {e} happened on {name}, URL: {url}\n")
+                print("-" * 100, "\n")
+                return False
+            if response.status_code == 200:
+                return response
+            else:
+                print("-" * 100)
+                print(f"Response code: {response.status_code} on {name}, URL: {url}\n")
+                print("-" * 100, "\n")
+                return False
 
     def find_urls(self, url: str):
-        response = self.get(name='find_all_href', url=url)
+        """
+        Crawl children URLs from a given parent URL. Ignoring external urls (not likely base_url)
+        :param url: a website or just a url with href links inside
+        :return:
+        """
+        response = self.get(name='find_urls', url=url)
         if response:
             # exception for cases where the url is 'https://site.com/new/'
             url = urlsplit(response.url)
@@ -74,16 +79,6 @@ class Crawler(object):
                 return url_list
         return []
 
-    def find_emails(self, url: str):
-        print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
-        response = self.get(name='find_emails', url=url)
-        if response:
-            if response.status_code == 200:
-                email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
-                if len(email_list) > 0:
-                    return {"url": url, "email": email_list}
-                return None
-
     # THIS IS NOT WORKING 100%.. -------------------------------------------------------------------------------------->
     def find_phone(self, url: str):
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
@@ -114,34 +109,51 @@ class Crawler(object):
         return phone_pool
     # ----------------------------------------------------------------------------------------------------------------/>
 
+    def find_emails(self, url: str):
+        """
+        get emails from a given URL
+        :param url:
+        :return: python dictionary if True or None if not retrieve any data
+        """
+        print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
+        response = self.get(name='find_emails', url=url)
+        if response:
+            if response.status_code == 200:
+                email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
+                if len(email_list) > 0:
+                    url = urlsplit(url)
+                    return {"url_path": url.path, "email": email_list}
+                return None
+
     def find_emails_in_list(self, url: str):
+        """
+        get emails from a given list of URLs
+        :param url: 
+        :return: {"url": str, "data": {"path": str, "email": list}
+        """""
         crawled_url_list = self.find_urls(url)
         with Pool() as p:
             email_pool = p.map(self.find_emails, crawled_url_list)
             p.close()
             p.join()
 
-        # Uniqueness labeled by URL
-        return_ = []
+        # Uniqueness and formatting return
+        return_ = {"url": url, "data": []}
         for dictionary in email_pool:
             if dictionary is not None:
                 emails_return = set()
-                for email_list in dictionary['email']:
-                    if type(email_list) == list:
-                        for email in email_list:
-                            if email is not None:
-                                emails_return.add(email)
-                    else:
-                        if email_list is not None:
-                            emails_return.add(email_list)
-                return_.append({"url": dictionary['url'], "email": emails_return})
+                for email in dictionary['email']:
+                    if not any(email in d['email'] for d in return_['data']):
+                        emails_return.add(email)
+                if len(emails_return) > 0:
+                    return_['data'].append({"path": dictionary['url_path'], "email": emails_return})
         return return_
 
 
 if __name__ == '__main__':
     crawler = Crawler()
-    # results = crawler.find_emails_in_list('https://www.gupy.io')
-    # results = crawler.find_emails_in_list('https://aracati.ce.gov.br/')
+    results = crawler.find_emails_in_list('http://www.louveira.sp.gov.br/')
+    # results = crawler.find_emails_in_list('http://aracati.ce.gov.br/')
     # results = crawler.find_emails_in_list('http://www.pmcg.mg.gov.br/')
-    results = crawler.find_emails('http://www.aruana.go.gov.br/')
+    # results = crawler.find_emails('http://www.aruana.go.gov.br/')
     print(results)
