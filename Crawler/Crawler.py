@@ -254,6 +254,7 @@ class Crawler(object):
                     json["data"].append({"path": dictionary['url_path'], "email": emails_return})
         return json
 
+# TODO: GET contact name or info around phone number
 
 if __name__ == '__main__':
     crawler = Crawler()
