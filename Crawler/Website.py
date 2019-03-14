@@ -1,3 +1,4 @@
+from Crawler.Session import Session
 from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
 from re import sub
@@ -5,27 +6,29 @@ from re import sub
 
 class Website(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, url: str):
+        self.Session = Session()
+        self.url: url = url
+        self.response = self.Session.get(name='WebSite', url=url)
+        self.url_list: list = []
 
-    def urls(self, url: str):
+    @property
+    def urls(self):
         """
-        Crawl children URLs from a given parent URL. Ignoring external urls (not likely base_url)
-        :param url: a website or just a url with href links inside
+        Crawl children URLs from a given parent (Website) URL. Ignoring external urls (not likely base_url)
         :return:
         """
-        response = self.get(name='website_urls', url=url)
-        if response is not None:
+        if self.response is not None:
             # exception for cases where the url is 'https://site.com/new/'
-            url = urlsplit(response.url)
+            url = urlsplit(self.response.url)
             if (url.path[0] == '/') and (url.path[-1] == '/'):
-                base_url = response.url
+                base_url = self.response.url
             else:
                 base_url = f"{url.scheme}://{url.netloc}"
-            if response.status_code == 200:
-                bs = BeautifulSoup(response.content, features='html.parser')
+            if self.response.status_code == 200:
+                bs = BeautifulSoup(self.response.content, features='html.parser')
                 url_list = set()
-                url_list.add(response.url)
+                url_list.add(self.response.url)
                 for anchor in bs.find_all('a'):
                     if "href" in anchor.attrs:
                         if base_url in anchor.attrs['href']:
