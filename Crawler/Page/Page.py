@@ -1,6 +1,4 @@
-
-
-class Elements(object):
+class Page(object):
 
     def __init__(self):
         pass
