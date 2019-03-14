@@ -1,7 +1,10 @@
 from typing import Dict, List
 
+from phonenumbers import format_number, parse, PhoneNumberFormat
+from phonenumbers.phonenumberutil import NumberParseException
 from multiprocessing import Pool, current_process
 from requests_html import HTMLSession as Session
+from re import findall, sub, IGNORECASE
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
@@ -77,6 +80,48 @@ class Crawler(object):
                 return url_list
         return None
 
+    def find_phone_numbers_on_page(self, url: str):
+        """
+        get phone numbers from a given URL
+        :param url:
+        :return: Python Dictionary: {"url_path": url.path, "phone": phone_list} or None
+        """
+        print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
+        response = self.get(name='find_phone', url=url)
+        if (response is not None) and (response.status_code == 200):
+            html = sub(r'[()\-\s]', '', response.text)
+            # ((?![9]{10,11}) exclude test phone number as (99) 99999-9999
+            # there is not area code starting with 0
+            phone_list = findall(r'(?![9]{10,11})[1-9][0-9][1-9][0-9]{7,8}', html)
+            if len(phone_list) > 0:
+                tmp = set()
+                for number in phone_list:
+                    try:
+                        number = format_number(parse(str(number), 'BR'), PhoneNumberFormat.NATIONAL)
+                        if '(' in number:  # adding only numbers parsed by google's module
+                            tmp.add(number)
+                    except NumberParseException:
+                        continue
+                phone_list = tmp
+                url = urlsplit(url)
+                return {"url_path": url.path, "phone": phone_list}
+        return None
+
+    def find_emails_on_page(self, url: str):
+        """
+        get email addresses from a given URL
+        :param url:
+        :return: Python Dictionary: {"url_path": url.path, "phone": phone_list} or None
+        """
+        print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
+        response = self.get(name='find_emails', url=url)
+        if (response is not None) and (response.status_code == 200):
+            email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
+            if len(email_list) > 0:
+                url = urlsplit(url)
+                return {"url_path": url.path, "email": email_list}
+        return None
+
     def find_contacts_on_page(self, url: str):
         """
          get email addresses and phone numbers from a given URL
@@ -115,6 +160,56 @@ class Crawler(object):
             elif len(phone_list) > 0:
                 return {"url_path": url.path, "phone": phone_list}
         return None
+
+    def find_phone_numbers_on_website(self, url: str):
+        """
+        get phone numbers from a given website
+        :param url: website url
+        :return: json:{"timestamp": str, "url": str, "data": [{"path": str, "phone", {str}}]}
+        """""
+        crawled_url_list = self.crawl_urls(url)
+        with Pool() as p:
+            phone_pool = p.map(self.find_phone_numbers_on_page, crawled_url_list)
+            p.close()
+            p.join()
+
+        # Uniqueness and formatting return
+        json: Dict[str, str, List[Dict[str, set]]] = {"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
+                                                      "url": url, "data": []}
+        for dictionary in phone_pool:
+            if dictionary is not None:
+                phones_return = set()
+                for phone in dictionary["phone"]:
+                    if not any(phone in d["phone"] for d in json["data"]):
+                        phones_return.add(phone)
+                if len(phones_return) > 0:
+                    json["data"].append({"path": dictionary['url_path'], "phone": phones_return})
+        return json
+
+    def find_emails_on_website(self, url: str):
+        """
+        get emails from a given website
+        :param url: website url
+        :return: json:{"timestamp": str, "url": str, "data": [{"path": str, "email": {str}}]}
+        """""
+        crawled_url_list = self.crawl_urls(url)
+        with Pool() as p:
+            email_pool = p.map(self.find_emails_on_page, crawled_url_list)
+            p.close()
+            p.join()
+
+        # Uniqueness and formatting return
+        json: Dict[str, str, List[Dict[str, set]]] = {"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
+                                                      "url": url, "data": []}
+        for dictionary in email_pool:
+            if dictionary is not None:
+                emails_return = set()
+                for email in dictionary["email"]:
+                    if not any(email in d["email"] for d in json["data"]):
+                        emails_return.add(email)
+                if len(emails_return) > 0:
+                    json["data"].append({"path": dictionary['url_path'], "email": emails_return})
+        return json
 
     def find_contacts_on_website(self, url: str):
         """
