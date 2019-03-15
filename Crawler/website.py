@@ -1,9 +1,5 @@
-from datetime import datetime, timezone
-from Crawler.session import Session
-from Crawler.Page.page import Page
+from session import Session
 from urllib.parse import urlsplit
-from multiprocessing import Pool
-from typing import Dict, List
 from bs4 import BeautifulSoup
 from re import sub
 
@@ -29,7 +25,7 @@ class Website(object):
         :return:
         """
         if response is None:
-            self.response = response
+            response = self.response
 
         if response is not None:
             # exception for cases where the url is 'https://site.com/new/'
@@ -63,47 +59,5 @@ class Website(object):
                         if url not in url_list:
                             url_list.add(url)
                 self.url_list = url_list
-        self.url_list = None
-
-    @property
-    def email(self):
-        return self._email_addresses
-
-    @email.setter
-    def email(self, response=None):
-        crawled_url_list = self.children_urls()
-        with Pool() as p:
-            contacts_pool = p.map(Page.email_addresses, crawled_url_list.children_urls)
-            p.close()
-            p.join()
-
-        # Uniqueness and formatting return
-        json: Dict[str, str, List[Dict[str, set]]] = {"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
-                                                      "url": self.url, "data": []}
-        for dictionary in contacts_pool:
-            if dictionary is not None:
-
-                emails_return = set()
-                phonenum_return = set()
-
-                if dictionary.get('email') is not None:
-                    for email in dictionary["email"]:
-                        if not any(email in d.get("email", {}) for d in json["data"]):
-                            emails_return.add(email)
-                if dictionary.get('phone') is not None:
-                    for phone in dictionary["phone"]:
-                        if not any(phone in d.get("phone", {}) for d in json["data"]):
-                            phonenum_return.add(phone)
-
-                bool_emails_return = len(emails_return) > 0
-                bool_phonenum_return = len(phonenum_return) > 0
-
-                if bool_emails_return and bool_phonenum_return:
-                    json["data"].append(
-                        {"path": dictionary['url_path'], "email": emails_return, "phone": phonenum_return})
-                elif bool_emails_return:
-                    json["data"].append({"path": dictionary['url_path'], "email": emails_return})
-                elif bool_phonenum_return:
-                    json["data"].append({"path": dictionary['url_path'], "phone": phonenum_return})
-
-        self._email_addresses = json
+            else:
+                self.url_list = None

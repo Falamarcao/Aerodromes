@@ -6,15 +6,15 @@ from re import findall, sub
 class Phone(object):
 
     def __init__(self):
-        self._number_list = set()
+        self._phone_numbers_list = set()
 
     @property
     def number_list(self):
-        return self._number_list
+        return self._phone_numbers_list
 
     @number_list.setter
-    def number_list(self, response):
-        html = sub(r'[()\-\s]', '', response.text)
+    def number_list(self, page):
+        html = sub(r'[()\-\s]', '', page)
         # ((?![9]{10,11}) exclude test phone number as (99) 99999-9999
         # there is not area code starting with 0
         phone_list = findall(r'(?![9]{10,11})[1-9][0-9][1-9][0-9]{7,8}', html)
@@ -27,4 +27,4 @@ class Phone(object):
                     tmp.add(number)
             except NumberParseException:
                 continue
-        self._number_list = tmp
+        self._phone_numbers_list = tmp
