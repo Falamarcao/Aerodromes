@@ -4,7 +4,7 @@ from Crawler.Page.phone import Phone
 from urllib.parse import urlsplit
 
 
-class Page(object):
+class Page(object, Email, Phone):
 
     def __init__(self, url: str):
         self.url = urlsplit(url)
@@ -19,10 +19,9 @@ class Page(object):
     @email_addresses.setter
     def email_addresses(self, response):
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
-        email = Email()
-        email = email.address_list(response)
-        if len(email.address_list) > 0:
-            self._email_list = {"url_path": self.url.path, "email": email.address_list}
+        self.Email.address_list(response)
+        if len(self.Email.address_list) > 0:
+            self._email_list = {"url_path": self.url.path, "email": self.Email.address_list}
         self._email_list = None
 
     @property
@@ -32,10 +31,9 @@ class Page(object):
     @phone_numbers.setter
     def phone_numbers(self, response):
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
-        phone = Phone()
-        phone = phone.number_list(response)
-        if len(phone.number_list) > 0:
-            self._phone_list = {"url_path": self.url.path, "phone": phone.number_list}
+        self.Phone.number_list(response)
+        if len(self.Phone.number_list) > 0:
+            self._phone_list = {"url_path": self.url.path, "phone": self.Phone.number_list}
         self._phone_list = None
 
     # @property
