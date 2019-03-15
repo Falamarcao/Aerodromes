@@ -10,7 +10,7 @@ class Prefeituras(Website):
     def email(self, url: str):
         r = Website(url)
         r.email()
-        return r.email
+        return r
 
 
 if __name__ == '__main__':
