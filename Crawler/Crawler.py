@@ -1,14 +1,19 @@
-from typing import Dict, List
-
 from multiprocessing import Pool, current_process
 from datetime import datetime, timezone
+from Crawler.website import Website
 from urllib.parse import urlsplit
+from typing import Dict, List
 
 
 class Crawler(object):
 
     def __init__(self):
         pass
+
+    def start(self):
+        r = Website('http://www.pmcg.mg.gov.br/')
+        r.email()
+        return r.email
 
     def find_contacts_on_page(self, url: str):
         """

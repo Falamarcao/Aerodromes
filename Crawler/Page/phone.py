@@ -13,7 +13,7 @@ class Phone(object):
         return self._number_list
 
     @number_list.setter
-    def number_list(self, response: object):
+    def number_list(self, response):
         html = sub(r'[()\-\s]', '', response.text)
         # ((?![9]{10,11}) exclude test phone number as (99) 99999-9999
         # there is not area code starting with 0

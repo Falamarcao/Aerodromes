@@ -11,5 +11,5 @@ class Email(object):
         return self._email_list
 
     @address_list.setter
-    def address_list(self, response: object):
+    def address_list(self, response):
         self._email_list = findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+", response.text, IGNORECASE)
