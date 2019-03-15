@@ -6,6 +6,8 @@
       <module fileurl="file://$PROJECT_DIR$/ANAC/ANAC.iml" filepath="$PROJECT_DIR$/ANAC/ANAC.iml" />
       <module fileurl="file://$PROJECT_DIR$/Aerodromos.iml" filepath="$PROJECT_DIR$/Aerodromos.iml" />
       <module fileurl="file://$PROJECT_DIR$/Crawler_old/Crawler_old.iml" filepath="$PROJECT_DIR$/Crawler_old/Crawler_old.iml" />
+      <module fileurl="file://$PROJECT_DIR$/1/Page/Page.iml" filepath="$PROJECT_DIR$/1/Page/Page.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Prefeituras/Prefeituras.iml" filepath="$PROJECT_DIR$/Prefeituras/Prefeituras.iml" />
     </modules>
   </component>
 </project>

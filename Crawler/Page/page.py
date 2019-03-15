@@ -4,7 +4,7 @@ from Crawler.Page.phone import Phone
 from urllib.parse import urlsplit
 
 
-class Page(object, Email, Phone):
+class Page(Email, Phone):
 
     def __init__(self, url: str):
         self.url = urlsplit(url)
