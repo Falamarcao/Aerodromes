@@ -107,4 +107,3 @@ class Website(object):
                     json["data"].append({"path": dictionary['url_path'], "phone": phonenum_return})
 
         self._email_addresses = json
-

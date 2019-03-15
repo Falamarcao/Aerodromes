@@ -2,13 +2,12 @@
 from Crawler.website import Website
 
 
-class Prefeituras(object):
+class Prefeituras(Website):
 
     def __init__(self):
         pass
 
-    @staticmethod
-    def email(url: str):
+    def email(self, url: str):
         r = Website(url)
         r.email()
         return r.email
