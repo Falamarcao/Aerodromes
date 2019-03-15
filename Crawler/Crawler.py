@@ -11,16 +11,17 @@ class Crawl(Website):
         Website.__init__(self, url)
 
     @property
-    def emails(self):
+    def emails_on_website(self):
         return self._email_addresses
 
-    def f(self, link):
+    @staticmethod
+    def emails_on_page(link):
         page = Page(url=link)
         page.email_addresses = page.response
         return page.email_addresses
 
-    @emails.setter
-    def emails(self, url_list: list = None):
+    @emails_on_website.setter
+    def emails_on_website(self, url_list: list = None):
 
         if url_list is None:
             self.children_urls = None
@@ -29,7 +30,7 @@ class Crawl(Website):
             self.url_list = url_list
 
         with Pool() as p:
-            contacts_pool = p.map(self.f, self.url_list)
+            contacts_pool = p.map(self.emails_on_page, self.url_list)
             p.close()
             p.join()
 
@@ -67,5 +68,5 @@ class Crawl(Website):
 
 if __name__ == '__main__':
     crawl = Crawl('http://www.louveira.sp.gov.br/')
-    crawl.emails = None
-    print(crawl.emails)
+    crawl.emails_on_website = None
+    print(crawl.emails_on_website)
