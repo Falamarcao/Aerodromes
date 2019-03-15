@@ -6,29 +6,36 @@ from re import sub
 
 class Website(object):
 
-    def __init__(self, url: str):
-        self.Session = Session()
+    def __init__(self, url: str = None):
         self.url: url = url
-        self.response = self.Session.get(name='WebSite', url=url)
-        self.url_list: list = []
+        self.Session = Session()
+        self.response = None if url is None else self.Session.get(name='WebSite', url=url)
+        self.url_list = None
 
-    @property
-    def urls(self):
+    def children_urls(self):
+        return self.url_list
+
+    @children_urls.setter
+    def children_urls(self, response: object = None):
         """
         Crawl children URLs from a given parent (Website) URL. Ignoring external urls (not likely base_url)
+        :param response: requests.get response object
         :return:
         """
-        if self.response is not None:
+        if response is None:
+            self.response = response
+
+        if response is not None:
             # exception for cases where the url is 'https://site.com/new/'
-            url = urlsplit(self.response.url)
+            url = urlsplit(response.url)
             if (url.path[0] == '/') and (url.path[-1] == '/'):
-                base_url = self.response.url
+                base_url = response.url
             else:
                 base_url = f"{url.scheme}://{url.netloc}"
-            if self.response.status_code == 200:
-                bs = BeautifulSoup(self.response.content, features='html.parser')
+            if response.status_code == 200:
+                bs = BeautifulSoup(response.content, features='html.parser')
                 url_list = set()
-                url_list.add(self.response.url)
+                url_list.add(response.url)
                 for anchor in bs.find_all('a'):
                     if "href" in anchor.attrs:
                         if base_url in anchor.attrs['href']:
@@ -49,5 +56,5 @@ class Website(object):
                         # append url to list
                         if url not in url_list:
                             url_list.add(url)
-                return url_list
-        return None
+                self.url_list = url_list
+        self.url_list = None

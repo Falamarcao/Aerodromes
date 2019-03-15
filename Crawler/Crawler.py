@@ -17,7 +17,7 @@ class Crawler(object):
          :return: Python Dictionary: {"url_path": url.path, "phone": phone_list} or None
          """
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {url}\n")
-        response = self.get(name='find_emails', url=url)
+        response = self.get(name='find_contacts_on_page', url=url)
         if (response is not None) and (response.status_code == 200):
             url = urlsplit(url)
 
