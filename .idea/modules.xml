@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/AISWeb/AISWeb.iml" filepath="$PROJECT_DIR$/AISWeb/AISWeb.iml" />
       <module fileurl="file://$PROJECT_DIR$/ANAC/ANAC.iml" filepath="$PROJECT_DIR$/ANAC/ANAC.iml" />
       <module fileurl="file://$PROJECT_DIR$/Aerodromos.iml" filepath="$PROJECT_DIR$/Aerodromos.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Crawler_old/Crawler_old.iml" filepath="$PROJECT_DIR$/Crawler_old/Crawler_old.iml" />
       <module fileurl="file://$PROJECT_DIR$/Prefeituras/Prefeituras.iml" filepath="$PROJECT_DIR$/Prefeituras/Prefeituras.iml" />
     </modules>
   </component>
