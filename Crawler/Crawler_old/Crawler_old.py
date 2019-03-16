@@ -258,12 +258,16 @@ class Crawler(object):
 
 
 if __name__ == '__main__':
+    from time import time
+    s = time()
     crawler = Crawler()
-    # results = crawler.find_emails_on_website('http://www.louveira.sp.gov.br/')
+    results = crawler.find_emails_on_website('http://www.louveira.sp.gov.br/')
     # results = crawler.find_emails_on_website('http://aracati.ce.gov.br/')
     # results = crawler.find_emails_on_website('http://www.pmcg.mg.gov.br/')
     # results = crawler.find_emails_on_website('http://www.aruana.go.gov.br/')
-    results = crawler.find_contacts_on_website('https://jundiai.sp.gov.br/')
+    # results = crawler.find_contacts_on_website('https://jundiai.sp.gov.br/')
     # results = crawler.find_emails_on_website('http://www.pmcg.mg.gov.br/')
     # results = crawler.find_emails_on_website('http://www.aruana.go.gov.br/')
+    f = time()
+    print(str(f-s))
     print(results)

@@ -19,8 +19,8 @@ class Page(Website, Email, Phone):
 
     @email_addresses.setter
     def email_addresses(self, response):
-        if response is None:
-            response = self.response
+        # if response is None:
+        #     response = self.response
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
         email = Email()
         email.address_list = response.text
@@ -35,8 +35,8 @@ class Page(Website, Email, Phone):
 
     @phone_numbers.setter
     def phone_numbers(self, response):
-        if response is None:
-            response = self.response
+        # if response is None:
+        #     response = self.response
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
         phone = Phone()
         phone.number_list = response.text

@@ -24,8 +24,6 @@ class Website(object):
         :param response: requests.get response object
         :return:
         """
-        if response is None:
-            response = self.response
 
         if response is not None:
             # exception for cases where the url is 'https://site.com/new/'
