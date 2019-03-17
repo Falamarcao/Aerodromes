@@ -9,15 +9,14 @@ class Phone(object):
         self._phone_numbers_list = set()
 
     @property
-    def number_list(self):
+    def numbers(self):
         return self._phone_numbers_list
 
-    @number_list.setter
-    def number_list(self, page):
-        html = sub(r'[()\-\s]', '', page)
+    @numbers.setter
+    def numbers(self, page):
         # ((?![9]{10,11}) exclude test phone number as (99) 99999-9999
         # there is not area code starting with 0
-        phone_list = findall(r'(?![9]{10,11})[1-9][0-9][1-9][0-9]{7,8}', html)
+        phone_list = findall(r'(?![9]{10,11})[1-9][0-9][1-9][0-9]{7,8}', sub(r'[()\-\s]', '', page))
 
         tmp = set()
         for number in phone_list:

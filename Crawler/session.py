@@ -20,11 +20,11 @@ class Session(object):
             print("-" * 100)
             print(f" {e} happened on {name}, URL: {url}\n")
             print("-" * 100, "\n")
-            return None
+            return response
         if response.status_code == 200:
             return response
         else:
             print("-" * 100)
             print(f"Response code: {response.status_code} on {name}, URL: {url}\n")
             print("-" * 100, "\n")
-            return None
+            return response

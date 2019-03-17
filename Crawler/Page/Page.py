@@ -8,26 +8,21 @@ from urllib.parse import urlsplit
 class Page(Website, Email, Phone):
 
     def __init__(self, url: str):
-        Website.__init__(self, url)
+        super().__init__(url)
         self.url_path = urlsplit(self.url).path
-        Email.__init__(self)
-        Phone.__init__(self)
 
     @property
     def email_addresses(self):
-        return self._email_list
+        return self._email_addresses_list
 
     @email_addresses.setter
     def email_addresses(self, response):
-        # if response is None:
-        #     response = self.response
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
-        email = Email()
-        email.address_list = response.text
-        if len(email.address_list) > 0:
-            self._email_list = {"url_path": self.url_path, "email": email.address_list}
+        self.addresses = response.text
+        if len(self.addresses) > 0:
+            self._email_addresses_list = {"url_path": self.url_path, "email": self.addresses}
         else:
-            self._email_list = None
+            self._email_addresses_list = None
 
     @property
     def phone_numbers(self):
@@ -35,13 +30,10 @@ class Page(Website, Email, Phone):
 
     @phone_numbers.setter
     def phone_numbers(self, response):
-        # if response is None:
-        #     response = self.response
         print(f"\nCurrent Process Name: {current_process().name}\tURL: {response.url}\n")
-        phone = Phone()
-        phone.number_list = response.text
-        if len(phone.number_list) > 0:
-            self._phone_numbers_list = {"url_path": self.url_path, "phone": phone.number_list}
+        self._phone_numbers_list = response.text
+        if len(self.numbers) > 0:
+            self._phone_numbers_list = {"url_path": self.url_path, "phone": self.numbers}
         else:
             self._phone_numbers_list = None
 

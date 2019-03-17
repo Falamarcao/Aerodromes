@@ -1,13 +1,13 @@
-from session import Session
 from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
+from session import Session
 from re import sub
 
 
 class Website(object):
 
     def __init__(self, url: str = None):
-        self.url: url = url
+        self.url: str = url
         self.Session = Session()
         self.response = None if url is None else self.Session.get(name='WebSite', url=url)
         self.url_list = None
@@ -24,7 +24,6 @@ class Website(object):
         :param response: requests.get response object
         :return:
         """
-
         if response is not None:
             # exception for cases where the url is 'https://site.com/new/'
             url = urlsplit(response.url)
@@ -48,6 +47,12 @@ class Website(object):
                             continue
                         elif 'mailto:' in anchor.attrs['href']:
                             # ignore emails
+                            continue
+                        elif 'tel:' in anchor.attrs['href']:
+                            # ignore phone numbers
+                            continue
+                        elif 'javascript' in anchor.attrs['href']:
+                            # ignore javascript
                             continue
                         else:
                             url = urlsplit(f"{base_url}/{anchor.attrs['href'].strip()}")

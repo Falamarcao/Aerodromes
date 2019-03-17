@@ -5,10 +5,11 @@ from website import Website
 from Page.Page import Page
 
 
-class Crawl(Website):
+class Crawl(Page, Website):
 
     def __init__(self, url: str):
-        Website.__init__(self, url)
+        # Website.__init__(self, url)
+        super().__init__(url)
 
     @property
     def emails_on_website(self):
@@ -66,28 +67,18 @@ class Crawl(Website):
 
     def start(self):
         self.children_urls = self.response
-        self.emails_on_website = self.children_urls
+        # self.emails_on_website = self.children_urls
 
 
 if __name__ == '__main__':
-    def one():
+    def start(url):  # 5.50263386964798 - FASTER!
         from time import time
         s = time()
-        # crawl = Crawl('http://www.pmcg.mg.gov.br')
-        crawl = Crawl('http://www.prefeituradeacrelandia.com.br/')
+        crawl = Crawl(url)
         crawl.start()
         f = time()
         print(str(f-s))
         print(crawl.emails_on_website)
+        return f-s
 
-    def two():
-        from time import time
-        s = time()
-        crawl = Crawl('http://www.pmcg.mg.gov.br')
-        crawl.children_urls = crawl.response
-        crawl.emails_on_website = crawl.children_urls
-        f = time()
-        print(str(f-s))
-        print(crawl.emails_on_website)
-
-    one()
+    start('http://www.pmcg.mg.gov.br/')
