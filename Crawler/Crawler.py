@@ -84,3 +84,5 @@ if __name__ == '__main__':
     start('http://www.pmcg.mg.gov.br/')
     # start('http://www.passos.mg.gov.br')  # TODO: aspx - NOT FINDING CHILDREN URLS
     # start('http://www.capital.sp.gov.br')  # TODO: combobox - NOT FINDING CHILDREN URLS
+
+    # TODO: include phone numbers, a generic function to receive email, phone numbers and other elements
