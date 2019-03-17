@@ -1,8 +1,8 @@
 from multiprocessing import current_process
+from urllib.parse import urlsplit
 from Page.Email import Email
 from Page.Phone import Phone
 from website import Website
-from urllib.parse import urlsplit
 
 
 class Page(Website, Email, Phone):

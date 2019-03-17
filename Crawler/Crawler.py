@@ -8,7 +8,6 @@ from Page.Page import Page
 class Crawl(Page, Website):
 
     def __init__(self, url: str):
-        # Website.__init__(self, url)
         super().__init__(url)
 
     @property
