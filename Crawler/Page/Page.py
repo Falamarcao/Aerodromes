@@ -1,7 +1,7 @@
 from multiprocessing import current_process
 from urllib.parse import urlsplit
-from Page.Email import Email
 from Page.Phone import Phone
+from Page.Email import Email
 from website import Website
 
 
