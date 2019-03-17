@@ -67,11 +67,11 @@ class Crawl(Page, Website):
 
     def start(self):
         self.children_urls = self.response
-        # self.emails_on_website = self.children_urls
+        self.emails_on_website = self.children_urls
 
 
 if __name__ == '__main__':
-    def start(url):  # 5.50263386964798 - FASTER!
+    def start(url):
         from time import time
         s = time()
         crawl = Crawl(url)
@@ -82,3 +82,5 @@ if __name__ == '__main__':
         return f-s
 
     start('http://www.pmcg.mg.gov.br/')
+    # start('http://www.passos.mg.gov.br')  # TODO: aspx - NOT FINDING CHILDREN URLS
+    # start('http://www.capital.sp.gov.br')  # TODO: combobox - NOT FINDING CHILDREN URLS
