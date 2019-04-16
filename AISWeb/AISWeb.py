@@ -181,4 +181,3 @@ if __name__ == '__main__':
     aisweb = AISWeb()
     aisweb.search_by_list_of_icao()
     aisweb.to_csv()
-
