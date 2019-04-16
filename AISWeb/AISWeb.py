@@ -81,12 +81,11 @@ class AISWeb(object):
     @property
     def get_notam(self):
         elements = self.bs.find_all("div", {"class": "notam"})
-        notam_list = []
-        if elements is not None:
 
+        if elements is not None:
+            notam_list = []
             for element in elements:
                 notam_dict = {}
-
                 badge_info = element.find_next('span', {'class': compile('.*badge.*')})
                 if badge_info is not None:
                     notam_dict.update({"badge_info": badge_info.text})
@@ -94,6 +93,10 @@ class AISWeb(object):
                     h5 = element.find_next('h5')
                     if h5 is not None:
                         notam_dict.update({"titulo": h5.text[len(badge_info.text)+1:]})
+
+                    msg = element.find_next('div', {'class': 'msg'})
+                    if msg is not None:
+                        notam_dict.update({"msg": msg.text})
 
                     pre = element.find_next('pre')
                     if pre is not None:
@@ -106,9 +109,10 @@ class AISWeb(object):
                     href = element.find_next('a').get('href')
                     if (href is not None) and ("?i=aerodromos&p=sol&id=" not in href):
                         notam_dict.update({"anexo": href})
-                    notam_list.append(notam_dict)
+                notam_list.append(notam_dict)
+
             if len(notam_list) == 1:
-                return notam_list[0]
+                return notam_list
             return notam_list
         return ""
 
