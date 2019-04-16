@@ -15,6 +15,7 @@ class AISWeb(object):
         self.base_url: str = "https://www.aisweb.aer.mil.br/?i=aerodromos&codigo="
         self.url: str = ""
         self.response = None
+        self.response_exception = None
         self.bs = None
         self.results: list = []
         self.headers: dict = {"User-Agent": "Chrome/62.0.3202.94 Safari/537.36"}
@@ -30,6 +31,7 @@ class AISWeb(object):
         try:
             response = self.Session.get(url, params=params, headers=self.headers)
         except Exception as e:
+            self.response_exception = e
             print("-" * 100)
             print(f" {e} happened on {name} with param list:\n{params}\n")
             print("-" * 100, "\n")
@@ -45,11 +47,10 @@ class AISWeb(object):
 
     # extract values
     def get_icao(self, icao=None):
-        if self.response.status_code == 200:
-            try:
-                return self.bs.find("strong", {"title": "Indicador de Localidade (ICAO Code)"}).text
-            except AttributeError:
-                pass
+        try:
+            return self.bs.find("strong", {"title": "Indicador de Localidade (ICAO Code)"}).text
+        except AttributeError:
+            pass
         return icao
 
     def get_value(self, tag: str, title: str):
@@ -117,15 +118,17 @@ class AISWeb(object):
         print(f"\nCurrent Process Name: {process_name}\tICAO: {icao}\n")
         self.url = self.base_url + icao
         self.response = self.get("icao", self.url)
-        self.bs = BeautifulSoup(self.response.content, features='html.parser')
-        results = {"ICAO": self.get_icao(icao),
-                   "CIAD": self.get_value("strong", "Código Identificador de Aeródromos"),
-                   "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
-                   "Cidade": self.get_value("span", "cidade"),
-                   "UF": self.get_value("span", "Estado"),
-                   "Alerta": self.get_alert,
-                   "NOTAM": self.get_notam}
-        return results
+        if self.response:
+            self.bs = BeautifulSoup(self.response.content, features='html.parser')
+            results = {"ICAO": self.get_icao(icao),
+                       "CIAD": self.get_value("strong", "Código Identificador de Aeródromos"),
+                       "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
+                       "Cidade": self.get_value("span", "cidade"),
+                       "UF": self.get_value("span", "Estado"),
+                       "Alerta": self.get_alert,
+                       "NOTAM": self.get_notam}
+            return results
+        return {"ICAO": icao, "ERRO": {"status code": self.response.status_code, "Exception": self.response_exception}}
 
     @property
     def read_icao_file(self) -> list:
@@ -170,6 +173,7 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
-    aisweb.to_csv()
+    aisweb.search_by_list_of_icao(['SWXU'])
+    print(aisweb.results)
+    # aisweb.to_csv()
 
