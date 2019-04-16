@@ -126,9 +126,11 @@ class AISWeb(object):
                        "Cidade": self.get_value("span", "cidade"),
                        "UF": self.get_value("span", "Estado"),
                        "Alerta": self.get_alert,
-                       "NOTAM": self.get_notam}
+                       "NOTAM": self.get_notam,
+                       "STATUS": "OK"}
             return results
-        return {"ICAO": icao, "ERRO": {"status code": self.response.status_code, "Exception": self.response_exception}}
+        return {"ICAO": icao, "STATUS": {"status code": self.response.status_code,
+                                         "Exception": self.response_exception}}
 
     @property
     def read_icao_file(self) -> list:
