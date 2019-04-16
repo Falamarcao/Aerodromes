@@ -173,7 +173,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao(['SWXU'])
-    print(aisweb.results)
-    # aisweb.to_csv()
+    aisweb.search_by_list_of_icao()
+    aisweb.to_csv()
 
