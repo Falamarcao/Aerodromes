@@ -91,8 +91,8 @@ class AISWeb(object):
         return ""
 
     def get_alert(self, icao: str):
+        page = fromstring(self.response.content)
         try:
-            page = fromstring(self.response.content)
             alert = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
                 page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
             return alert.strip()
