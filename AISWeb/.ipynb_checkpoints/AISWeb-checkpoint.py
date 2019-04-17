@@ -7,27 +7,25 @@ from csv import DictWriter
 from os import listdir
 import hashlib
 import time
-import json
 
 
 class AISWeb(object):
     def __init__(self):
         self.Session = Session()
-        self.base_url: str = "https://www.aisweb.decea.gov.br/"
+        self.base_url: str = "https://www.aisweb.aer.mil.br/?i=aerodromos&codigo="
         self.url: str = ""
-        self.headers: dict = {"Accept": "text/html,application/xhtml+xml,application/xml;"
-                                        "q=0.9,image/webp,image/apng,*/*;"
-                                        "q=0.8,application/signed-exchange;v=b3",
-                              "User-Agent": "Studentbot"}
         self.response = None
         self.response_exception = None
         self.bs = None
         self.results: list = []
-        self.hash = self.hash_code()
+        self.headers: dict = {"Accept": "text/html,application/xhtml+xml,application/xml;"
+                                        "q=0.9,image/webp,image/apng,*/*;"
+                                        "q=0.8,application/signed-exchange;v=b3",
+                              "User-Agent": "Studentbot"}
 
     def get(self, name: str, url: str, params: dict = None):
         """
-        function to do http get requests
+        function to get json data from API
         :param name: transaction name for log control
         :param url: from where are asking data
         :param params: filters and mandatory parameters
@@ -52,7 +50,7 @@ class AISWeb(object):
 
     def post(self, name: str, url: str, data: dict = None, params: dict = None):
         """
-        function to do http post requests
+        function to get json data from API
         :param name: transaction name for log control
         :param url: from where are asking data
         :param data: web form data
@@ -91,15 +89,15 @@ class AISWeb(object):
         return ""
 
     def get_alert(self, icao: str):
+        page = fromstring(self.response.content)
         try:
-            page = fromstring(self.response.content)
             alert = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
                 page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
             return alert.strip()
         except IndexError:
             element = page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')
-            if element and element[1].strip() == "O aeródromo não foi encontrado.":
-                # search for details
+            if element[1].strip() == "O aeródromo não foi encontrado.":
+                # search fro details
                 params: dict = {"i": "busca"}
                 data: dict = {"q": icao}
                 response = self.post(name="alert", url="https://www.aisweb.decea.gov.br/", params=params, data=data)
@@ -128,10 +126,11 @@ class AISWeb(object):
             return lstnotam
         return ""
 
+    # search
     def search_by_icao(self, icao: str):
         process_name = current_process().name
         print(f"\nCurrent Process Name: {process_name}\tICAO: {icao}\n")
-        self.url = self.base_url + "?i=aerodromos&codigo=" + icao
+        self.url = self.base_url + icao
         self.response = self.get("icao", self.url)
         if self.response:
             self.bs = BeautifulSoup(self.response.content, features='html.parser')
@@ -175,21 +174,13 @@ class AISWeb(object):
             p.close()
             p.join()
 
-    @staticmethod
-    def hash_code():
+    def to_csv(self):
         code = hashlib.sha1()
         code.update(str(time.time()).encode('utf-8'))
-        return code.hexdigest()[:10]
-
-    def to_json(self):
-        with open(f'output_aisweb_{self.hash}.json', 'w') as file:
-            json.dump({"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
-                       "data": self.results}, file)
-
-    def to_csv(self):
+        hash_ = code.hexdigest()[:10]
         keys = self.results[0].keys()
-        with open(f'AISWeb\\output_aisweb_{self.hash}.csv', 'w', newline='') as output_file:
-            print(f'Recorded at file: output_aisweb_{self.hash}.csv')
+        with open(f'AISWeb\\output_aisweb_{hash_}.csv', 'w', newline='') as output_file:
+            print(f'Recorded at file: output_aisweb_{hash_}.csv')
             dict_writer = DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.results)
@@ -197,6 +188,5 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
+    aisweb.search_by_list_of_icao(['SIJQ'])
     aisweb.to_csv()
-    aisweb.to_json()
