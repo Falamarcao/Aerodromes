@@ -90,23 +90,26 @@ class AISWeb(object):
             return element.text
         return ""
 
-    def get_alert(self, icao: str):
+    def get_status(self, icao: str):
         page = fromstring(self.response.content)
         try:
-            alert = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
-                page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
-            return alert.strip()
+            status = page.xpath('/html/body/div/div/div/div[1]/div/div/strong/text()')[0] + \
+                    page.xpath('/html/body/div/div/div/div[1]/div/div/text()')[1]
+            return status.strip()
         except IndexError:
             element = page.xpath('/html/body/div/div/section/div/div[1]/div/div/text()')
-            if element and element[1].strip() == "O aeródromo não foi encontrado.":
+            if element and (element[1].strip() == "O aeródromo não foi encontrado."):
                 # search for details
                 params: dict = {"i": "busca"}
                 data: dict = {"q": icao}
                 response = self.post(name="alert", url="https://www.aisweb.decea.gov.br/", params=params, data=data)
-                alert = fromstring(response.content).xpath('/html/body/div/div/section[1]/div/div/div[2]'
-                                                           '/div/div/div[2]/div/div/strong/text()')[0]
+                status = ''.join(fromstring(response.content).xpath('/html/body/div/div/section[1]/div/div/div[2]'
+                                                                    '/div/div/div[2]/div/div/strong/text()'))
+                status = status.strip()
                 del response, data, params
-                return alert.strip()
+                if len(status) > 0:
+                    return status.strip()
+                return element[1].strip()[:-1]
             return "OK"
 
     @property
@@ -114,17 +117,15 @@ class AISWeb(object):
         elements = self.bs.find_all("div", {"class": "notam"})
         if elements is not None:
             lstnotam = []
-            strnotam = ""
             for element in elements:
                 element = str(element).split('<')
+                strnotam = ""
                 for x in range(1, len(element)-1):
                     line = element[x].split('>')[1]
                     if (len(line) > 0) and (line[-1] != " "):  # add space where don't have spaces
                         line += " "
                     strnotam += line
                 lstnotam.append(strnotam.strip())
-            if len(lstnotam) == 1:
-                return strnotam
             return lstnotam
         return ""
 
@@ -140,7 +141,7 @@ class AISWeb(object):
                        "Aeródromo": self.get_value("span", "Nome do Aeródromo"),
                        "Cidade": self.get_value("span", "cidade"),
                        "UF": self.get_value("span", "Estado"),
-                       "Status": self.get_alert(icao),
+                       "Status": self.get_status(icao),
                        "NOTAM": self.get_notam,
                        "Debug": {"response_status_code": self.response.status_code}}
             return results
@@ -170,7 +171,7 @@ class AISWeb(object):
         """
         if icao_list is None:
             icao_list = self.read_icao_file
-        with Pool(4) as p:
+        with Pool() as p:
             self.results = p.map(self.search_by_icao, icao_list)
             p.close()
             p.join()
@@ -182,7 +183,7 @@ class AISWeb(object):
         return code.hexdigest()[:10]
 
     def to_json(self):
-        with open(f'output_aisweb_{self.hash}.json', 'w') as file:
+        with open(f'AISWeb\\output_aisweb_{self.hash}.json', 'w') as file:
             json.dump({"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
                        "data": self.results}, file)
             print(f'Recorded at file: output_aisweb_{self.hash}.json')
@@ -200,4 +201,4 @@ if __name__ == '__main__':
     aisweb = AISWeb()
     aisweb.search_by_list_of_icao()
     aisweb.to_csv()
-    aisweb.to_json()
+    # aisweb.to_json()
