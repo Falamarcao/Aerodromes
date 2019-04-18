@@ -131,7 +131,7 @@ class AISWeb(object):
     def search_by_icao(self, icao: str):
         process_name = current_process().name
         print(f"\nCurrent Process Name: {process_name}\tICAO: {icao}\n")
-        self.url = self.base_url + "?i=aerodromos&codigo=" + icao
+        self.url = self.base_url + "?i=aerodromos&codigo=" + icao[0:4]  # [0:4] to avoid bugs, in past appeared '*'
         self.response = self.get("icao", self.url)
         if self.response:
             self.bs = BeautifulSoup(self.response.content, features='html.parser')
@@ -185,14 +185,15 @@ class AISWeb(object):
         with open(f'output_aisweb_{self.hash}.json', 'w') as file:
             json.dump({"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
                        "data": self.results}, file)
+            print(f'Recorded at file: output_aisweb_{self.hash}.json')
 
     def to_csv(self):
         keys = self.results[0].keys()
         with open(f'AISWeb\\output_aisweb_{self.hash}.csv', 'w', newline='') as output_file:
-            print(f'Recorded at file: output_aisweb_{self.hash}.csv')
             dict_writer = DictWriter(output_file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.results)
+            print(f'Recorded at file: output_aisweb_{self.hash}.csv')
 
 
 if __name__ == '__main__':
