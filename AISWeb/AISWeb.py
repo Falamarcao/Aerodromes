@@ -142,7 +142,6 @@ class AISWeb(object):
             output = []
             for element in elements:
                 tmplst = self.scrap_to_list(element)
-                print(tmplst)
                 while True:
                     duracao = ""
                     divulgacao = ""
@@ -151,13 +150,11 @@ class AISWeb(object):
                         duracao = tmplst.pop(i+1)
                         del tmplst[i]
                     if "Divulgação:" in tmplst:
-                        print('OK')
                         i = tmplst.index("Divulgação:")
                         divulgacao = tmplst.pop(i+1)
                         del tmplst[i]
                     if duracao or divulgacao:
                         tmplst.append({"Duração": duracao, "Divulgação": divulgacao})
-                    print(tmplst)
                     if not ("Duração:" in tmplst) and not ("Divulgação:" in tmplst):
                         break
                 output.append(tmplst)
