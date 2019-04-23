@@ -259,7 +259,6 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao(['SNAP'])
-    print(aisweb.results)
-    # aisweb.to_csv()
-    # aisweb.to_json()
+    aisweb.search_by_list_of_icao()
+    aisweb.to_csv()
+    aisweb.to_json()
