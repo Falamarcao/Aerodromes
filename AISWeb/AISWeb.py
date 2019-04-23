@@ -142,13 +142,16 @@ class AISWeb(object):
             output = []
             for element in elements:
                 tmplst = self.scrap_to_list(element)
-                try:
-                    i = tmplst.index('Duração:')
-                    tmplst[i] = 'Duração: ' + tmplst.pop(i+1)
-                    i = tmplst.index('Divulgação:')
-                    tmplst[i] = 'Divulgação: ' + tmplst.pop(i+1)
-                except ValueError:
-                    pass
+                while True:
+                    try:
+                        if 'Duração:' in tmplst:
+                            i = tmplst.index('Duração:')
+                            tmplst[i] = 'Duração: ' + tmplst.pop(i+1)
+                        if 'Divulgação:' in tmplst:
+                            i = tmplst.index('Divulgação:')
+                            tmplst[i] = 'Divulgação: ' + tmplst.pop(i+1)
+                    except (ValueError, IndexError):
+                        break
                 output.append(tmplst)
             return output
         return ""
