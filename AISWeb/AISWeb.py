@@ -18,7 +18,7 @@ class AISWeb(object):
         self.headers: dict = {"Accept": "text/html,application/xhtml+xml,application/xml;"
                                         "q=0.9,image/webp,image/apng,*/*;"
                                         "q=0.8,application/signed-exchange;v=b3",
-                              "User-Agent": "Studentbot"}
+                              "User-Agent": "Prometo usar somente em horários de baixo nivel de acesso S2"}
         self.response = None
         self.response_exception = None
         self.bs = None
@@ -119,13 +119,13 @@ class AISWeb(object):
             lstnotam = []
             for element in elements:
                 element = str(element).split('<')
-                strnotam = ""
+                notam = ""
                 for x in range(1, len(element)-1):
-                    line = element[x].split('>')[1]
-                    if (len(line) > 0) and (line[-1] != " "):  # add space where don't have spaces
-                        line += " "
-                    strnotam += line
-                lstnotam.append(strnotam.strip())
+                    line = element[x].split('>')[1] + "|"  # add a separator
+                    notam += line
+                # Organizing the data structure (str to list)
+                notam = [lst.split('|') for lst in notam.split('\n')]
+                lstnotam.append(notam)
             return lstnotam
         return ""
 
@@ -199,6 +199,7 @@ class AISWeb(object):
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao()
-    aisweb.to_csv()
+    aisweb.search_by_list_of_icao(['SIVG'])
+    print(aisweb.results)
+    #aisweb.to_csv()
     # aisweb.to_json()
