@@ -112,7 +112,7 @@ class AISWeb(object):
                 if len(status) > 0:
                     return status.strip()
                 return element[1].strip()[:-1]
-            return "OK"
+            return ""
 
     @staticmethod
     def scrap_to_list(element):
