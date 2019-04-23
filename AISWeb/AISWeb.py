@@ -4,9 +4,10 @@ from datetime import datetime, timezone
 from lxml.html import fromstring
 from bs4 import BeautifulSoup
 from csv import DictWriter
+from hashlib import sha1
 from os import listdir
-import hashlib
-import time
+from re import compile
+from time import time
 import json
 
 
@@ -22,6 +23,7 @@ class AISWeb(object):
         self.response = None
         self.response_exception = None
         self.bs = None
+        self.tempnotam_elements: list = []
         self.results: list = []
         self.hash = self.hash_code()
 
@@ -112,21 +114,66 @@ class AISWeb(object):
                 return element[1].strip()[:-1]
             return "OK"
 
+    @staticmethod
+    def scrap_to_list(element):
+        element = str(element).split('<')
+        vartmp = ""
+        for x in range(1, len(element)-1):
+            line = element[x].split('>')[1]
+            if len(line) > 1:
+                line = '|' + line + '|'
+            vartmp += line
+        # Organizing the data structure (str to list)
+        vartmp = [lst.split('|') for lst in vartmp.split('\n')]
+        output = []
+        for lst in vartmp:
+            if len(lst) > 1:
+                for s in lst:
+                    if s not in ['', ' ']:
+                        output.append(s.strip())
+        return output
+
+    @property
+    def get_temp(self):
+        elements = self.bs.find('h4', text=compile(r"AIP \("))
+        if elements is not None:
+            elements = elements.find_all_previous("div", {"class": "notam"})
+            self.tempnotam_elements = elements
+            output = []
+            for element in elements:
+                tmplst = self.scrap_to_list(element)
+                try:
+                    i = tmplst.index('Duração:')
+                    tmplst[i] = 'Duração: ' + tmplst.pop(i+1)
+                    i = tmplst.index('Divulgação:')
+                    tmplst[i] = 'Divulgação: ' + tmplst.pop(i+1)
+                except ValueError:
+                    pass
+                output.append(tmplst)
+            return output
+        return ""
+
+    @property
+    def get_aip(self):
+        elements = self.bs.find('h4', text=compile(r"NOTAM \("))
+        if elements is not None:
+            elements = elements.find_all_previous("div", {"class": "notam"})
+            output = []
+            for element in elements:
+                if element not in self.tempnotam_elements:
+                    output.append(self.scrap_to_list(element))
+            return output
+        return ""
+
     @property
     def get_notam(self):
-        elements = self.bs.find_all("div", {"class": "notam"})
+        elements = self.bs.find('h4', text=compile(r"NOTAM \("))
         if elements is not None:
-            lstnotam = []
+            elements = elements.find_all_next("div", {"class": "notam"})
+            output = []
             for element in elements:
-                element = str(element).split('<')
-                notam = ""
-                for x in range(1, len(element)-1):
-                    line = element[x].split('>')[1] + "|"  # add a separator
-                    notam += line
-                # Organizing the data structure (str to list)
-                notam = [lst.split('|') for lst in notam.split('\n')]
-                lstnotam.append(notam)
-            return lstnotam
+                output.append(self.scrap_to_list(element))
+            return output
         return ""
 
     def search_by_icao(self, icao: str):
@@ -142,6 +189,8 @@ class AISWeb(object):
                        "Cidade": self.get_value("span", "cidade"),
                        "UF": self.get_value("span", "Estado"),
                        "Status": self.get_status(icao),
+                       "TEMP": self.get_temp,
+                       "AIP": self.get_aip,
                        "NOTAM": self.get_notam,
                        "Debug": {"response_status_code": self.response.status_code}}
             return results
@@ -178,15 +227,9 @@ class AISWeb(object):
 
     @staticmethod
     def hash_code():
-        code = hashlib.sha1()
-        code.update(str(time.time()).encode('utf-8'))
+        code = sha1()
+        code.update(str(time()).encode('utf-8'))
         return code.hexdigest()[:10]
-
-    def to_json(self):
-        with open(f'AISWeb\\output_aisweb_{self.hash}.json', 'w') as file:
-            json.dump({"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
-                       "data": self.results}, file)
-            print(f'Recorded at file: output_aisweb_{self.hash}.json')
 
     def to_csv(self):
         keys = self.results[0].keys()
@@ -196,10 +239,15 @@ class AISWeb(object):
             dict_writer.writerows(self.results)
             print(f'Recorded at file: output_aisweb_{self.hash}.csv')
 
+    def to_json(self):
+        with open(f'AISWeb\\output_aisweb_{self.hash}.json', 'w') as file:
+            json.dump({"timestamp": datetime.now(timezone.utc).astimezone().isoformat(),
+                       "data": self.results}, file)
+            print(f'Recorded at file: output_aisweb_{self.hash}.json')
+
 
 if __name__ == '__main__':
     aisweb = AISWeb()
-    aisweb.search_by_list_of_icao(['SIVG'])
-    print(aisweb.results)
-    #aisweb.to_csv()
-    # aisweb.to_json()
+    aisweb.search_by_list_of_icao()
+    aisweb.to_csv()
+    aisweb.to_json()
