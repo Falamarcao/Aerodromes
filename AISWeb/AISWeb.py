@@ -90,7 +90,6 @@ class AISWeb(object):
         element = self.bs.find(tag, {"title": title})
         if element is not None:
             return element.text
-        return ""
 
     def get_status(self, icao: str):
         page = fromstring(self.response.content)
@@ -112,7 +111,6 @@ class AISWeb(object):
                 if len(status) > 0:
                     return status.strip()
                 return element[1].strip()[:-1]
-            return ""
 
     @staticmethod
     def scrap_to_list(element):
@@ -165,7 +163,6 @@ class AISWeb(object):
                         exceptions = True
                 output.append(tmplst)
             return output
-        return ""
 
     @property
     def get_aip(self):
@@ -177,7 +174,6 @@ class AISWeb(object):
                 if element not in self.tempnotam_elements:
                     output.append(self.scrap_to_list(element))
             return output
-        return ""
 
     @property
     def get_notam(self):
@@ -188,7 +184,6 @@ class AISWeb(object):
             for element in elements:
                 output.append(self.scrap_to_list(element))
             return output
-        return ""
 
     def search_by_icao(self, icao: str):
         process_name = current_process().name
